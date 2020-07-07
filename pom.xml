@@ -7,6 +7,7 @@
     <groupId>com.z</groupId>
     <artifactId>develop-frame</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -28,12 +29,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!--mybatis-->
+        <!-- 引入jdbc支持 -->
         <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>1.3.2</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
+
         <!--数据库驱动-->
         <dependency>
             <groupId>mysql</groupId>
@@ -47,20 +48,10 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- servlet依赖的jar包start -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
         </dependency>
-        <!-- servlet依赖的jar包start -->
-
-        <!-- jsp依赖jar包start -->
-        <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>javax.servlet.jsp-api</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <!-- jsp依赖jar包end -->
 
         <!--jstl标签依赖的jar包start -->
         <dependency>
@@ -69,8 +60,13 @@
         </dependency>
         <!--jstl标签依赖的jar包end -->
 
+        <!--sitemesh -->
+        <dependency>
+            <groupId>org.sitemesh</groupId>
+            <artifactId>sitemesh</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
     </dependencies>
-
-
 
 </project>
