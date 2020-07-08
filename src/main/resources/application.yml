@@ -9,6 +9,12 @@ spring:
       prefix: /WEB-INF/views/
       suffix: .jsp
     static-path-pattern: /assets/**
+    pathmatch:
+      use-suffix-pattern: false
+      use-registered-suffix-pattern: true
+      contentnegotiation:
+        favor-path-extension: false
+
   resources:
     static-locations: /assets/
   datasource:
