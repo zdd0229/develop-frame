@@ -7,39 +7,54 @@ import com.z.plat.sys.vo.SysUserSearchVO;
 import com.z.plat.util.code.RandomCodeUtil;
 import com.z.plat.util.encrypt.Md5SaltUtil;
 import com.z.plat.util.model.ComboboxVO;
+import com.z.plat.util.string.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * 系统用户管理Service
+ *
+ * @author 孔垂云
+ * @date 2017-06-13
+ */
 @Service
 public class SysUserService {
-
     @Autowired
     private SysUserDao sysUserDao;
-
     @Autowired
     private SysResourceDao sysResourceDao;
 
-    //用户新增，判断用户是否存在 返回2 ：存在，返回1：操作成功
-    public int add(SysUser sysUser){
-
+    /**
+     * 用户新增，先判断用户名是否存在 返回2，账号已存在，返回1操作成功
+     *
+     * @param sysUser
+     * @return
+     */
+    public int add(SysUser sysUser) {
+        int flag = 0;
         SysUser exist = sysUserDao.getByUsername(sysUser.getUsername());
-        if(exist!=null){
-            return 2;
-        }else {
-            String password="123456";
+        if (exist != null)
+            flag = 2;
+        else {
+            // 设置密码
+            String password = "123456";
             String randomcode = RandomCodeUtil.createRandomCode(6);
-            Md5SaltUtil md5SaltUtil=new Md5SaltUtil(randomcode);
+            Md5SaltUtil md5SaltUtil = new Md5SaltUtil(randomcode);
             String md5Pass = md5SaltUtil.encode(password);
             sysUser.setPassword(md5Pass);
             sysUser.setRandomcode(randomcode);
-            return sysUserDao.add(sysUser);
+            flag = sysUserDao.add(sysUser);
+            flag = 1;
         }
+        return flag;
     }
 
     public int update(SysUser sysUser) {
-        return sysUserDao.update(sysUser);
+        int flag = 0;
+        flag = sysUserDao.update(sysUser);
+        return flag;
     }
 
     public int delete(int id) {
@@ -81,21 +96,44 @@ public class SysUserService {
         return sysUserDao.count(sysUserSearchVO);
     }
 
-    //修改密码
-    public int updatePass(int id,String oldPass,String newPass){
 
-        SysUser getUser=sysUserDao.get(id);
-
-        Md5SaltUtil md5SaltUtil = new Md5SaltUtil(getUser.getRandomcode());
-        if(md5SaltUtil.isPasswordValid(getUser.getPassword(),oldPass)){
-            String newRandomcode = RandomCodeUtil.createRandomCode(6);
-            Md5SaltUtil md5SaltUtil12 = new Md5SaltUtil(newRandomcode);
-            String md5Pass = md5SaltUtil12.encode(newPass);
-            return sysUserDao.updatePass(getUser.getId(), md5Pass, newRandomcode);
-        }else {
-            return 2;
+    /**
+     * 修改密码
+     *
+     * @param id
+     * @param oldPass
+     * @param newPass
+     * @return
+     */
+    public int updatePass(int id, String oldPass, String newPass) {
+        int flag = 0;
+        SysUser getUser = sysUserDao.get(id);
+        // 判断原密码是否为空，不为空则修改新密码
+        if (StringUtil.isNotNullOrEmpty(oldPass)) {
+            Md5SaltUtil md5SaltUtil = new Md5SaltUtil(getUser.getRandomcode());
+            if (md5SaltUtil.isPasswordValid(getUser.getPassword(), oldPass)) {
+                String newRandomcode = RandomCodeUtil.createRandomCode(6);
+                Md5SaltUtil md5SaltUtil12 = new Md5SaltUtil(newRandomcode);
+                String md5Pass = md5SaltUtil12.encode(newPass);
+                sysUserDao.updatePass(getUser.getId(), md5Pass, newRandomcode);
+                flag = 1;
+            } else {
+                flag = 2;
+            }
         }
+        return flag;
+    }
 
+    /**
+     * 校验密码是否正确
+     *
+     * @param sysUser
+     * @param password
+     * @return
+     */
+    public boolean checkPass(SysUser sysUser, String password) {
+        Md5SaltUtil md5SaltUtil = new Md5SaltUtil(sysUser.getRandomcode());
+        return md5SaltUtil.isPasswordValid(sysUser.getPassword(), password);
     }
 
     /**

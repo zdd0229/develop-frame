@@ -10,17 +10,20 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**系统用户Dao
+ * @author 孔垂云
+ * @date 2017-06-13
+ */
 @Repository
 public class SysUserDao extends BaseDao<SysUser, SysUserSearchVO> {
-
     /**
      * 新增用户
      * @param sysUser
      * @return
      */
-    public int add(SysUser sysUser){
+    public int add(SysUser sysUser) {
         String sql = "insert into t_sys_user(username,password,randomcode,status,realname,mobile,created_at,created_by,role_id)";
-        sql += " values(:username,:password,:randomcode,1,:realname,:mobile,sysdate,:createdBy,:roleId)";
+        sql += " values(:username,:password,:randomcode,1,:realname,:mobile,now(),:createdBy,:roleId)";
         return insertForId(sql, sysUser, "id");
     }
 
@@ -30,9 +33,10 @@ public class SysUserDao extends BaseDao<SysUser, SysUserSearchVO> {
      * @return
      */
     public int update(SysUser sysUser) {
-        String sql = "update t_sys_user set realname=:realname,role_id=:roleId,mobile=:mobile,last_modified_by=:lastModifiedBy,last_modified_at=sysdate where id=:id ";
+        String sql = "update t_sys_user set realname=:realname,role_id=:roleId,mobile=:mobile,last_modified_by=:lastModifiedBy,last_modified_at=now() where id=:id ";
         return update(sql, sysUser);
     }
+
 
     /**
      * 修改密码
@@ -110,23 +114,6 @@ public class SysUserDao extends BaseDao<SysUser, SysUserSearchVO> {
         return list(sql, sysUserSearchVO);
     }
 
-    private String createSearchSql(SysUserSearchVO sysUserSearchVO) {
-        String sql = "";
-        if (StringUtil.isNotNullOrEmpty(sysUserSearchVO.getUsername())) {
-            sql += " and username=:username";
-        }
-        if (StringUtil.isNotNullOrEmpty(sysUserSearchVO.getRealname())) {
-            sql += " and realname like :realnameStr";
-        }
-        if (sysUserSearchVO.getRoleId() != null) {
-            sql += " and role_id=:roleId";
-        }
-        if (sysUserSearchVO.getStatus() != null) {
-            sql += " and status=:status";
-        }
-        return sql;
-    }
-
     public List<SysUser> listAll() {
         String sql = "select t.id,t.username,t.password,t.randomcode,t.status,t.realname,t.mobile,t.created_at,t.created_by,t.role_id,t.last_modified_by,t.last_modified_at,(select name from t_sys_role where id=role_id) roleName  from t_sys_user t ";
         sql += " order by id asc";
@@ -145,6 +132,23 @@ public class SysUserDao extends BaseDao<SysUser, SysUserSearchVO> {
         return count(sql, sysUserSearchVO);
     }
 
+    private String createSearchSql(SysUserSearchVO sysUserSearchVO) {
+        String sql = "";
+        if (StringUtil.isNotNullOrEmpty(sysUserSearchVO.getUsername())) {
+            sql += " and username=:username";
+        }
+        if (StringUtil.isNotNullOrEmpty(sysUserSearchVO.getRealname())) {
+            sql += " and realname like :realnameStr";
+        }
+        if (sysUserSearchVO.getRoleId() != null) {
+            sql += " and role_id=:roleId";
+        }
+        if (sysUserSearchVO.getStatus() != null) {
+            sql += " and status=:status";
+        }
+        return sql;
+    }
+
     /**
      * 所有人员列表，查询日志使用
      *
@@ -154,5 +158,4 @@ public class SysUserDao extends BaseDao<SysUser, SysUserSearchVO> {
         String sql = "select id value,username content from t_sys_user  order by id";
         return listCombobox(sql);
     }
-
 }

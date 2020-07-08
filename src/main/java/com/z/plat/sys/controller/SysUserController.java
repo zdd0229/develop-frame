@@ -2,10 +2,12 @@ package com.z.plat.sys.controller;
 
 import com.z.plat.core.pub.PubConfig;
 import com.z.plat.sys.model.SysUser;
+import com.z.plat.sys.model.SysUserLogin;
 import com.z.plat.sys.service.SysRoleService;
 import com.z.plat.sys.service.SysUserLoginService;
 import com.z.plat.sys.service.SysUserService;
 import com.z.plat.sys.vo.SysUserSearchVO;
+import com.z.plat.sys.vo.SysUserloginSearchVO;
 import com.z.plat.util.page.PageNavigate;
 import com.z.plat.util.string.BackUrlUtil;
 import com.z.plat.util.string.StringUtil;
@@ -19,10 +21,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
-@Controller
+/**
+ * 系统用户管理Controller
+ *
+ * @author 孔垂云
+ * @date 2017-06-13
+ */
 @RequestMapping("/sys/user")
+@Controller
 public class SysUserController {
-
     @Autowired
     private SysUserService sysUserService;
     @Autowired
@@ -32,22 +39,23 @@ public class SysUserController {
     @Autowired
     private PubConfig pubConfig;
 
-    public ModelAndView index(HttpServletRequest request, HttpServletResponse response, SysUserSearchVO sysUserSearchVO){
-
+    /**
+     * 进入用户管理界面
+     *
+     * @return
+     */
+    @RequestMapping("/index")
+    public ModelAndView index(HttpServletRequest request, HttpServletResponse response, SysUserSearchVO sysUserSearchVO) {
         ModelAndView mv = new ModelAndView();
-
-        int recordCount = sysUserService.count(sysUserSearchVO);
+        int recordCount = sysUserService.count(sysUserSearchVO);// 获取查询总数
         String url = createUrl(sysUserSearchVO);
-        PageNavigate pageNavigate = new PageNavigate(url,sysUserSearchVO.getPageIndex(),recordCount);
+        PageNavigate pageNavigate = new PageNavigate(url, sysUserSearchVO.getPageIndex(), recordCount);//定义分页对象
         List<SysUser> list = sysUserService.list(sysUserSearchVO);
-
         mv.addObject("pageNavigate", pageNavigate);// 设置分页的变量
         mv.addObject("list", list);// 把获取的记录放到mv里面
         mv.addObject("listRole", sysRoleService.list());// 角色列表
         mv.setViewName("/plat/sys/user/index");// 跳转至指定页面
-
         BackUrlUtil.createBackUrl(mv, request, url);// 设置返回url
-
         return mv;
     }
 
@@ -219,5 +227,32 @@ public class SysUserController {
         else
             WebUtil.out(response, "false");
     }
+
+    /**
+     * 用户登录信息
+     *
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/searchUserLogin")
+    public ModelAndView searchUserLogin(HttpServletRequest request, HttpServletResponse response, SysUserloginSearchVO sysUserloginSearchVO) {
+        ModelAndView mv = new ModelAndView();
+        int recordCount = sysUserLoginService.count(sysUserloginSearchVO);// 获取查询总数
+        String url = createUserLoginUrl(sysUserloginSearchVO);
+        PageNavigate pageNavigate = new PageNavigate(url, sysUserloginSearchVO.getPageIndex(), recordCount);//
+        List<SysUserLogin> list = sysUserLoginService.list(sysUserloginSearchVO);
+        mv.addObject("pageNavigate", pageNavigate);// 设置分页的变量
+        mv.addObject("list", list);// 把获取的记录放到mv里面
+        mv.setViewName("/plat/sys/user/login");// 跳转至指定页面
+        return mv;
+    }
+
+    // 设置分页url，一般有查询条件的才会用到
+    private String createUserLoginUrl(SysUserloginSearchVO sysUserloginSearchVO) {
+        String url = pubConfig.getDynamicServer() + "/sys/user/searchUserLogin.htm?userId=" + sysUserloginSearchVO.getUserId();
+        return url;
+    }
+
+
 
 }

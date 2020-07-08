@@ -53,5 +53,4 @@ public class SysLogService {
         return sysLogDao.count(sysLogSearchVO);
     }
 
-
 }
