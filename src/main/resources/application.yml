@@ -22,3 +22,11 @@ spring:
     password: root
     url: jdbc:mysql://101.132.128.127:3306/dframe?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
     driver-class-name: com.mysql.jdbc.Driver
+
+pubconfig:
+  versionno: 1.1
+  imageserver: http://localhost:8080
+  imageuploadpath: D:\\upload
+  staticserver: http://localhost:8080
+  dynamicserver: http://localhost:8080
+  webtitle: Basic Development PlatForm

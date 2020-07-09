@@ -1,5 +1,6 @@
 package com.z.plat.core.pub;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
  * @date 2017-06-13
  */
 @Component
+@ConfigurationProperties(prefix = "pubconfig")
 public class PubConfig {
     private String imageServer;//图片显示服务器地址
     private String imageUploadPath;//图片路径
