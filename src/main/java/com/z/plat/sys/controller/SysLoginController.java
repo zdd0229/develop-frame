@@ -92,6 +92,7 @@ public class SysLoginController {
                 sysUserLogin.setTerminal(WebUtil.getSafeStr(request.getParameter("terminal")));
                 sysUserLogin.setExplorerType(WebUtil.getSafeStr(request.getParameter("explorerType")));
                 sysUserLogin.setExplorerVersion(WebUtil.getSafeStr(request.getParameter("explorerVersion")));
+                System.out.println(Thread.currentThread().getName()+"  开启主线程");
                 userLoginService.add(sysUserLogin);
                 WebUtil.out(response, JsonUtil.createOperaStr(true, "登录成功"));
             }

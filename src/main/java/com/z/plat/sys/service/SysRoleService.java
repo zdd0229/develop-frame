@@ -9,10 +9,15 @@ import com.z.plat.sys.model.SysRole;
 import com.z.plat.sys.model.SysRoleResource;
 import com.z.plat.util.cache.EhCacheUtil;
 import com.z.plat.util.model.ComboboxVO;
+import com.z.plat.util.session.SessionUtil;
+import com.z.plat.util.session.UserSession;
 import com.z.plat.util.string.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +27,12 @@ import java.util.List;
  *
  * @author 孔垂云
  * @date 2017-06-13
+ * <p>
+ * 系统的所有权限控制都在该类中处理，共有三个cache
+ * 1、系统左侧菜单，通过RoleId来生成，cache格式为roleMenu_+roleId
+ * 2、系统所有按钮权限，页面显示按钮时使用，cache格式为roleFunctions_+roleId
+ * 3、系统能访问资源权限，包括所有资源的url，hashmap数据类型，key为url，value为0/1，,1具有权限，0不具有权限，cache格式为roleResources_+roleId
+ * 当修改模块或新增删除模块时，清空所有cache，当角色修改时，清空上述三个对应roleId的cache
  */
 @Service
 public class SysRoleService {
@@ -84,6 +95,9 @@ public class SysRoleService {
                 sysRoleresourceDao.addRoleResource(sysRole.getId(), Integer.parseInt(functionSplit[i]));
             }
         }
+        EhCacheUtil.remove("sysCache", "roleFunctions_" + sysRole.getId());
+        EhCacheUtil.remove("sysCache", "roleResources_" + sysRole.getId());
+        EhCacheUtil.remove("sysCache", "roleMenu_" + sysRole.getId());
         return 1;
     }
 
@@ -99,6 +113,9 @@ public class SysRoleService {
         if (flag == 1) {
             sysRoleresourceDao.deleteRoleResource(id);
         }
+        EhCacheUtil.remove("sysCache", "roleFunctions_" + id);
+        EhCacheUtil.remove("sysCache", "roleResources_" + id);
+        EhCacheUtil.remove("sysCache", "roleMenu_" + id);
         return flag;
     }
 
@@ -140,7 +157,7 @@ public class SysRoleService {
      * @return
      */
     public HashMap<String, String> getRoleFunctions(int roleId) {
-        HashMap<String, String> hashFunctions = null;
+        HashMap<String, String> hashFunctions = EhCacheUtil.get("sysCache", "roleFunctions" + roleId);
         if (hashFunctions == null) {
             hashFunctions = new HashMap<>();
             List<SysRoleResource> listRoleResource = sysRoleresourceDao.listRoleResourceByType(roleId, 2);
@@ -158,13 +175,14 @@ public class SysRoleService {
      * @return
      */
     public HashMap<String, Integer> getRoleResources(int roleId) {
-        HashMap<String, Integer> hashRoleResources = null;
+        HashMap<String, Integer> hashRoleResources = EhCacheUtil.get("sysCache", "roleResources_" + roleId);
         if (hashRoleResources == null) {
             hashRoleResources = new HashMap<>();
             List<SysRoleResource> listRoleResource = sysRoleresourceDao.listRoleResource(roleId);
             for (SysRoleResource sysRoleResource : listRoleResource) {
                 hashRoleResources.put(sysRoleResource.getUrl(), sysRoleResource.getResourceId() == 0 ? 0 : 1);
             }
+            EhCacheUtil.put("sysCache", "roleResources_" + roleId, hashRoleResources);
         }
         return hashRoleResources;
     }
@@ -186,7 +204,7 @@ public class SysRoleService {
                 displayResourceIdList.add(sysRoleResource.getResourceId());
             }
             for (SysResource sysResource : listResource) {
-                if (sysResource.getParentId() == 1 && displayResourceIdList.contains(sysResource.getId())) {
+                if (sysResource.getParentId() == 6 && displayResourceIdList.contains(sysResource.getId())) {
                     sb.append("<li class=\"\"><a href=\"#\" class=\"dropdown-toggle\"> <i class=\"menu-icon fa "
                             + sysResource.getIconImg() + "\"></i> <span class=\"menu-text\"> " + sysResource.getName()
                             + " </span> <b class=\"arrow fa fa-angle-down\"></b></a> <b class=\"arrow\"></b><ul class=\"submenu\">");
@@ -206,5 +224,33 @@ public class SysRoleService {
             EhCacheUtil.put("sysCache", "roleMenu_" + role_id, menu);
         }
         return menu;
+    }
+
+    /**
+     * 校验所有权限，防止不通过浏览器提交
+     *
+     * @param roleId 角色id
+     * @param path   url路径
+     * @return
+     */
+    public boolean checkAuthority(int roleId, String path) {
+        HashMap<String, Integer> hashRoleResources = getRoleResources(roleId);
+        if (!hashRoleResources.containsKey(path) || hashRoleResources.get(path) == 1)
+            return true;
+        else
+            return false;
+    }
+
+    /**
+     * 判断按钮是否在角色中
+     *
+     * @param buttonCode
+     * @return
+     */
+    public boolean checkBtnPrivilege(String buttonCode) {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        UserSession userSession = SessionUtil.getUserSession(request);
+        HashMap<String, String> hashRoleFunction = getRoleFunctions(userSession.getRoleId());
+        return hashRoleFunction.containsKey(buttonCode);
     }
 }
